@@ -13,6 +13,8 @@ function getActivityCategory(activity) {
   return 'system';
 }
 
+const ITEMS_PER_PAGE = 10;
+
 export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUser }) {
   const isAdmin = isAdminRole(user?.role);
   const [showProfile, setShowProfile] = useState(false);
@@ -20,6 +22,7 @@ export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUs
   const [roleFilter, setRoleFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
 
@@ -99,6 +102,29 @@ export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUs
       return matchesRole && matchesCategory && matchesSearch;
     });
   }, [activities, roleFilter, categoryFilter, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredActivities.length / ITEMS_PER_PAGE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedActivities = filteredActivities.slice(
+    (safeCurrentPage - 1) * ITEMS_PER_PAGE,
+    safeCurrentPage * ITEMS_PER_PAGE,
+  );
+
+  useEffect(() => {
+    setCurrentPage((page) => {
+      if (page <= totalPages) return page;
+      return totalPages;
+    });
+  }, [totalPages]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [roleFilter, categoryFilter, search]);
+
+  const startIndex = filteredActivities.length
+    ? (safeCurrentPage - 1) * ITEMS_PER_PAGE + 1
+    : 0;
+  const endIndex = Math.min(safeCurrentPage * ITEMS_PER_PAGE, filteredActivities.length);
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#C9DCEF] font-sans text-slate-800">
@@ -183,6 +209,36 @@ export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUs
             </p>
           </section>
 
+          {filteredActivities.length > ITEMS_PER_PAGE && (
+            <section className="rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-sm sm:rounded-3xl sm:p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-[11px] font-semibold text-slate-600">
+                  Halaman <strong className="text-[#014181]">{safeCurrentPage}</strong> dari{' '}
+                  <strong className="text-[#014181]">{totalPages}</strong>
+                  {' '} · {startIndex}-{endIndex} dari {filteredActivities.length} aktivitas
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                    disabled={safeCurrentPage === 1}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Sebelumnya
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                    disabled={safeCurrentPage === totalPages}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Berikutnya
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
+
           {loadError && (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900" role="alert">
               <span>{loadError}</span>
@@ -204,7 +260,7 @@ export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUs
               <p className="p-8 text-center text-xs text-slate-500" role="status">Memuat riwayat aktivitas...</p>
             ) : filteredActivities.length ? (
               <div className="divide-y divide-slate-100">
-                {filteredActivities.map((activity) => (
+                {paginatedActivities.map((activity) => (
                   <article key={activity.id} className="flex flex-col gap-2 px-4 py-3.5 sm:flex-row sm:items-start sm:justify-between sm:px-5">
                     <div className="flex min-w-0 gap-3">
                       <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-[#FF7401]" aria-hidden="true" />
@@ -252,6 +308,43 @@ export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUs
               <p className="p-8 text-center text-xs text-slate-500">
                 {activities.length ? 'Tidak ada aktivitas yang cocok dengan filter.' : 'Belum ada riwayat aktivitas.'}
               </p>
+            )}
+
+            {filteredActivities.length > ITEMS_PER_PAGE && (
+              <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-100 px-4 py-4 sm:px-5">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={safeCurrentPage === 1}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Sebelumnya
+                </button>
+
+                {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => setCurrentPage(page)}
+                    className={`h-8 min-w-8 rounded-lg px-2 text-[11px] font-bold ${
+                      safeCurrentPage === page
+                        ? 'bg-[#014181] text-white'
+                        : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={safeCurrentPage === totalPages}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Berikutnya
+                </button>
+              </div>
             )}
           </section>
         </div>
