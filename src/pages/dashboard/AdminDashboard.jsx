@@ -137,7 +137,7 @@ export default function AdminDashboard({ user, onLogout, onUpdateUser }) {
             {[
               { label: 'Total Laporan', value: adminStats.rmft + adminStats.rmkredit },
               { label: 'Laporan RMFT', value: adminStats.rmft },
-              { label: 'Laporan RM Kredit', value: adminStats.rmkredit },
+              { label: 'Laporan RM SME', value: adminStats.rmkredit },
               { label: 'Tugas Tindak Lanjut Aktif', value: activeTaskCount, href: '/tindak-lanjut' },
             ].map((item) => (
               <div

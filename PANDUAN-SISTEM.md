@@ -1,7 +1,7 @@
 # Panduan Sistem — Aplikasi Laporan Harian RM BRI KC Iskandar
 
 > Aplikasi web untuk pengelolaan **laporan harian Relationship Manager (RM)** di lingkungan BRI,
-> mencakup laporan **RMFT** (Funding & Transaksi) dan **RMKredit** (Layanan Kredit),
+> mencakup laporan **RMFT** (Funding & Transaksi) dan **RM SME** (layanan untuk segmen SME),
 > dengan sistem role (Pegawai/Admin), log aktivitas, dan sinkronisasi cloud Supabase.
 
 ---
@@ -73,7 +73,7 @@ Laporan-Harian-RM-BRIKCPIskandar/
 
 | Hak Akses | Pegawai | Admin |
 |---|:---:|:---:|
-| Membuat laporan RMFT / RMKredit sendiri | ✅ | ✅ |
+| Membuat laporan RMFT / RM SME sendiri | ✅ | ✅ |
 | Melihat laporan sendiri | ✅ | ✅ |
 | Melihat **semua** laporan pegawai (`?scope=all`) | ❌ | ✅ |
 | Edit/Hapus laporan | Hanya miliknya | Semua laporan |
@@ -99,10 +99,10 @@ Laporan-Harian-RM-BRIKCPIskandar/
 - Sesi disimpan di `localStorage` (`bri-app-session-v1`) dengan **timeout 4 hari
   tanpa aktivitas**; setiap interaksi (klik/keyboard) memperbarui waktu aktif.
 
-### 4.2 Laporan Harian RM (RMFT & RMKredit)
+### 4.2 Laporan Harian RM (RMFT & RM SME)
 Komponen `TransactionForm.jsx` melayani dua jenis laporan via props:
 
-| | RMFT | RMKREDIT |
+| | RMFT | RM SME |
 |---|---|---|
 | Isi | Pembukaan rekening, Setoran, Tarikan, Transfer, Aktivasi layanan, Lainnya | Konsultasi kredit, Pengajuan kredit, Follow up, Pembayaran angsuran, Restrukturisasi, Lainnya |
 
@@ -112,12 +112,12 @@ Fitur pada halaman laporan:
 - **View mode**: `?view=reports` menampilkan kartu laporan, mode biasa menampilkan form.
 - **Pencarian & filter**: berdasarkan nama/kata kunci, status, dan jenis laporan.
 - **Detail, Edit, Hapus** per laporan (dengan validasi kepemilikan `canManageRecord`).
-- **Gabungan admin**: `?scope=all` memuat semua laporan RMFT + RMKredit (paginasi 1000/baris).
+- **Gabungan admin**: `?scope=all` memuat semua laporan RMFT + RM SME (paginasi 1000/baris).
 - Data selalu **tersinkron dua arah**: Supabase `laporan_rm` ↔ cache `localStorage`.
 
 ### 4.3 Dashboard
-- **Pegawai**: kartu menu RMFT/RMKredit (buat/lihat laporan) + feed aktivitas terbaru (realtime).
-- **Admin**: banner pusat kendali, statistik total laporan RMFT & RMKredit,
+- **Pegawai**: kartu menu RMFT/RM SME (buat/lihat laporan) + feed aktivitas terbaru (realtime).
+- **Admin**: banner pusat kendali, statistik total laporan RMFT & RM SME,
   **grafik batang laporan per bulan** dengan pemilih tahun.
 
 ### 4.4 Pengelolaan Pegawai (Admin)
@@ -192,7 +192,7 @@ Sidebar Admin → "Semua laporan" → /rmft?view=reports&scope=all
 | Tabel | Kolom Utama | Kegunaan |
 |---|---|---|
 | `profiles` | `id (=auth.uid)`, name, email, **role**, job_title, photo_url, updated_at | Data tambahan user + penentu role |
-| `laporan_rm` | id, user_id, user_name, form_type, full_name, customer_type, identity_number, phone, address, transaction_type, follow_up, photo_url, created_at | Isi laporan harian RMFT/RMKredit |
+| `laporan_rm` | id, user_id, user_name, form_type, full_name, customer_type, identity_number, phone, address, transaction_type, follow_up, photo_url, created_at | Isi laporan harian RMFT/RM SME |
 | `aktivitas_log` | id, user_id, user_name, action, detail, created_at | Log aktivitas seluruh fitur |
 
 ### Kebijakan RLS (dari `supabase/role-access.sql`)
@@ -216,7 +216,7 @@ Sidebar Admin → "Semua laporan" → /rmft?view=reports&scope=all
 | `/` | Home → Dashboard sesuai role | Login |
 | `/login` | AuthPage (Login/Registrasi) | Hanya tanpa sesi |
 | `/rmft` | Form & laporan RMFT | Login |
-| `/rmkredit` | Form & laporan RMKredit | Login |
+| `/rmkredit` | Form & laporan RM SME | Login |
 | `/rmft?view=reports` | Mode daftar laporan | Login |
 | `/rmft?view=reports&scope=all` | Laporan gabungan semua pegawai | **Admin** |
 | `/employees` | Pengelolaan pegawai | **Admin** (nege ke `/` jika bukan) |

@@ -17,6 +17,11 @@ function getStorageKey(user, formType) {
   return `bri-app-records-${formType}-${user?.id || 'guest'}`;
 }
 
+function getFormTypeLabel(formType) {
+  if (formType === 'rmkredit') return 'RM SME';
+  return formType ? formType.toUpperCase() : 'RMFT';
+}
+
 function readSavedRecords(user, formType) {
   try {
     const records = JSON.parse(localStorage.getItem(getStorageKey(user, formType)) || '[]');
@@ -456,7 +461,7 @@ export default function TransactionForm({
 
       recordActivity(
         user,
-        `Upload ${formType.toUpperCase()}`,
+        `Upload ${getFormTypeLabel(formType)}`,
         `Mengunggah laporan ${form.fullName} - ${form.transactionType}`,
       );
       setForm(blankForm);
@@ -576,7 +581,7 @@ export default function TransactionForm({
 
     recordActivity(
       user,
-      `Edit ${(editingRecord.formType || formType).toUpperCase()}`,
+      `Edit ${getFormTypeLabel(editingRecord.formType || formType)}`,
       `Memperbarui data laporan ${editingRecord.fullName}`,
     );
 
@@ -624,7 +629,7 @@ export default function TransactionForm({
 
     recordActivity(
       user,
-      `Hapus ${(recordToDelete.formType || formType).toUpperCase()}`,
+      `Hapus ${getFormTypeLabel(recordToDelete.formType || formType)}`,
       `Menghapus data laporan ${recordName}`,
     );
   };
@@ -844,7 +849,7 @@ export default function TransactionForm({
                   </h1>
                   <p className="text-xs text-blue-100/80 max-w-xl leading-relaxed">
                     {isAllReports
-                      ? 'Daftar gabungan laporan RMFT dan RM Kredit dari seluruh pegawai, diurutkan dari yang terbaru.'
+                      ? 'Daftar gabungan laporan RMFT dan RM SME dari seluruh pegawai, diurutkan dari yang terbaru.'
                       : 'Kelola laporan yang Anda buat. Buka detail atau edit laporan kapan saja.'}
                   </p>
                   <div className="flex flex-wrap gap-2 pt-1">
@@ -943,7 +948,7 @@ export default function TransactionForm({
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                       >
-                        RM Kredit
+                        RM SME
                       </button>
                     </>
                   )}
@@ -1091,7 +1096,7 @@ export default function TransactionForm({
                             <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
                               {isAllReports && (
                                 <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#014181]/10 text-[#014181] border border-[#014181]/15 shrink-0">
-                                  {record.formType === 'rmkredit' ? 'RM KREDIT' : 'RMFT'}
+                                  {getFormTypeLabel(record.formType)}
                                 </span>
                               )}
                               <span
@@ -1660,7 +1665,7 @@ export default function TransactionForm({
               <span>
                 {(selectedDetailRecord.formType || formType) === 'rmft'
                   ? 'Relationship Manager Funding & Transaksi'
-                  : 'Relationship Manager Kredit'}
+                  : 'Relationship Manager SME'}
               </span>
             </div>
           </header>

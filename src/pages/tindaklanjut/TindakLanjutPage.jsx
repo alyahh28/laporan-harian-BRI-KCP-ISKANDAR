@@ -17,7 +17,7 @@ import {
 
 const FORM_TYPE_LABEL = {
   rmft: 'RMFT',
-  rmkredit: 'RM Kredit',
+  rmkredit: 'RM SME',
 };
 
 const TAB_OPTIONS = [
@@ -297,7 +297,7 @@ export default function TindakLanjutPage({ user, onBack, onLogout, onUpdateUser 
                 >
                   <option value="all">Semua jenis</option>
                   <option value="rmft">RMFT</option>
-                  <option value="rmkredit">RM Kredit</option>
+                  <option value="rmkredit">RM SME</option>
                 </select>
               </label>
 

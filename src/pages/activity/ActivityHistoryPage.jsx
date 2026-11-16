@@ -8,7 +8,7 @@ import { supabase } from '../../config/supabaseClient.js';
 
 function getActivityCategory(activity) {
   const text = `${activity.action || ''} ${activity.detail || ''}`;
-  if (/\brm\s*kredit\b|\brmkredit\b|\bkredit\b/i.test(text)) return 'rmkredit';
+  if (/\brm\s*(?:kredit|sme)\b|\brmkredit\b|\bkredit\b/i.test(text)) return 'rmkredit';
   if (/\brmft\b|funding|transaksi/i.test(text)) return 'rmft';
   return 'system';
 }
@@ -150,7 +150,7 @@ export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUs
               </h1>
               <p className="mt-2 max-w-2xl text-xs leading-relaxed text-blue-100 sm:text-sm">
                 {isAdmin
-                  ? 'Telusuri aktivitas Admin dan Pegawai, serta bedakan kegiatan RMFT dan RM Kredit.'
+                  ? 'Telusuri aktivitas Admin dan Pegawai, serta bedakan kegiatan RMFT dan RM SME.'
                   : 'Lihat aktivitas akun Anda dan pilah berdasarkan jenis layanan.'}
               </p>
             </div>
@@ -189,7 +189,7 @@ export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUs
                 >
                   <option value="all">Semua aktivitas</option>
                   <option value="rmft">RMFT</option>
-                  <option value="rmkredit">RM Kredit</option>
+                  <option value="rmkredit">RM SME</option>
                   <option value="system">Aktivitas akun/sistem</option>
                 </select>
               </label>
@@ -284,7 +284,7 @@ export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUs
                             {activity.category === 'rmft'
                               ? 'RMFT'
                               : activity.category === 'rmkredit'
-                                ? 'RM Kredit'
+                                ? 'RM SME'
                                 : 'Sistem'}
                           </span>
                         </div>

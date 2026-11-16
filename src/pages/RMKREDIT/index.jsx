@@ -6,7 +6,7 @@ export default function RMKREDIT({ user, onBack }) {
       user={user}
       onBack={onBack}
       formType="rmkredit"
-      title="Relationship Manager Kredit"
+      title="Relationship Manager SME"
       transactionLabel="Jenis Layanan Kredit"
       transactionOptions={[
         'Konsultasi kredit',

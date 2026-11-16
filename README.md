@@ -9,7 +9,7 @@
 - `src/pages/dashboard/AdminDashboard.jsx` berisi kartu informasi dan grafik laporan.
 - `src/pages/admin/EmployeeManagementPage.jsx` berisi halaman khusus pengelolaan akun dan role pegawai.
 - `src/pages/activity/ActivityHistoryPage.jsx` berisi halaman riwayat aktivitas Admin/Pegawai.
-- `src/components/TransactionForm.jsx` dipakai bersama oleh RMFT dan RM Kredit.
+- `src/components/TransactionForm.jsx` dipakai bersama oleh RMFT dan RM SME.
 - `src/pages/auth/` berisi login, registrasi, dan pengelolaan sesi.
 
 Registrasi baru memberikan role `Pegawai`. Admin dapat mengubah role dari dashboard Admin.

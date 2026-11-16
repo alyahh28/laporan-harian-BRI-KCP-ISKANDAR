@@ -20,8 +20,8 @@ const menuItems = [
     reportPage: 'rmft?view=reports',
   },
   {
-    label: 'RELATIONSHIP MANAGER KREDIT (RMKREDIT)',
-    description: 'Buat dan kelola laporan layanan kredit.',
+    label: 'RELATIONSHIP MANAGER SME',
+    description: 'Buat dan kelola laporan layanan SME.',
     icon: 'chart',
     page: 'rmkredit',
     reportPage: 'rmkredit?view=reports',
