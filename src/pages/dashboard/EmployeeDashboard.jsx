@@ -29,36 +29,40 @@ const menuItems = [
 ];
 
 export default function EmployeeDashboard({ user, onLogout, onUpdateUser, onNavigate }) {
+  const userId = user?.id;
+  const userRole = user?.role;
+  const userEmail = user?.email;
   const [showProfile, setShowProfile] = useState(false);
   const [activities, setActivities] = useState(() => getUserActivities(user));
   const [activeTaskCount, setActiveTaskCount] = useState(0);
   const [notice, setNotice] = useState('');
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!userId) return;
     let isMounted = true;
-    countActiveTasks(user).then((count) => {
+    countActiveTasks({ id: userId, role: userRole }).then((count) => {
       if (isMounted) setActiveTaskCount(count);
     });
     return () => {
       isMounted = false;
     };
-  }, [user]);
+  }, [userId, userRole]);
 
   useEffect(() => {
     let isMounted = true;
-    fetchActivitiesFromSupabase(user).then((items) => {
+    const scopedUser = { id: userId, role: userRole, email: userEmail };
+    fetchActivitiesFromSupabase(scopedUser).then((items) => {
       if (isMounted && items) setActivities(items);
     });
-    const unsubscribe = subscribeToActivities(user, async () => {
-      const items = await fetchActivitiesFromSupabase(user);
+    const unsubscribe = subscribeToActivities(scopedUser, async () => {
+      const items = await fetchActivitiesFromSupabase(scopedUser);
       if (isMounted) setActivities(items);
     });
     return () => {
       isMounted = false;
       unsubscribe();
     };
-  }, [user]);
+  }, [userId, userRole, userEmail]);
 
   useEffect(() => {
     if (!notice) return undefined;
@@ -69,11 +73,6 @@ export default function EmployeeDashboard({ user, onLogout, onUpdateUser, onNavi
   const navigateTo = (page, label) => {
     recordActivity(user, 'Membuka menu', `Membuka menu ${label}`);
     onNavigate(page);
-  };
-
-  const handleLogout = () => {
-    recordActivity(user, 'Logout', `${user.name} keluar dari aplikasi`);
-    onLogout();
   };
 
   return (
@@ -89,7 +88,7 @@ export default function EmployeeDashboard({ user, onLogout, onUpdateUser, onNavi
       <div className="relative z-10">
         <Navbar
           user={user}
-          onLogout={handleLogout}
+          onLogout={onLogout}
           onOpenProfile={() => {
             setShowProfile(true);
             recordActivity(user, 'Membuka profil', 'Melihat detail profil');

@@ -58,7 +58,9 @@ function InfoRow({ label, value, mono = false }) {
 
 export default function TindakLanjutPage({ user, onBack, onLogout, onUpdateUser }) {
   const navigate = useNavigate();
-  const isAdmin = isAdminRole(user?.role);
+  const userId = user?.id;
+  const userRole = user?.role;
+  const isAdmin = isAdminRole(userRole);
 
   const [showProfile, setShowProfile] = useState(false);
   const [tab, setTab] = useState(TASK_STATUS.PENDING);
@@ -77,13 +79,14 @@ export default function TindakLanjutPage({ user, onBack, onLogout, onUpdateUser 
   const [deletingTaskId, setDeletingTaskId] = useState('');
 
   const loadTasks = useCallback(async () => {
-    if (!user?.id) return;
+    if (!userId) return;
+    const scopedUser = { id: userId, role: userRole };
     setIsLoading(true);
     setLoadError('');
 
     const [pendingResult, doneResult] = await Promise.all([
-      fetchTasks(user, { status: TASK_STATUS.PENDING }),
-      fetchTasks(user, { status: TASK_STATUS.DONE }),
+      fetchTasks(scopedUser, { status: TASK_STATUS.PENDING }),
+      fetchTasks(scopedUser, { status: TASK_STATUS.DONE }),
     ]);
 
     if (pendingResult.error || doneResult.error) {
@@ -98,7 +101,7 @@ export default function TindakLanjutPage({ user, onBack, onLogout, onUpdateUser 
       done: doneResult.data || [],
     });
     setIsLoading(false);
-  }, [user]);
+  }, [userId, userRole]);
 
   useEffect(() => {
     let isMounted = true;

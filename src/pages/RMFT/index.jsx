@@ -1,4 +1,5 @@
 import TransactionForm from '../../components/TransactionForm.jsx';
+import { TRANSACTION_FORM_CONFIG } from '../../config/transactionOptions.js';
 
 export default function RMFT({ user, onBack }) {
   return (
@@ -7,15 +8,7 @@ export default function RMFT({ user, onBack }) {
       onBack={onBack}
       formType="rmft"
       title="Relationship Manager Funding & Transaksi (RMFT)"
-      transactionLabel="Jenis Transaksi"
-      transactionOptions={[
-        'Pembukaan rekening',
-        'Setoran',
-        'Tarikan',
-        'Transfer',
-        'Aktivasi layanan',
-        'Lainnya',
-      ]}
+      transactionLabel={TRANSACTION_FORM_CONFIG.rmft.label}
     />
   );
 }

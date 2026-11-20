@@ -80,9 +80,10 @@ using (id = auth.uid() or public.current_user_is_admin())
 with check (id = auth.uid() or public.current_user_is_admin());
 
 drop policy if exists "laporan_rm_select_authenticated" on public.laporan_rm;
-create policy "laporan_rm_select_authenticated"
+drop policy if exists "laporan_rm_select_own_or_admin" on public.laporan_rm;
+create policy "laporan_rm_select_own_or_admin"
 on public.laporan_rm for select to authenticated
-using (true);
+using (user_id = auth.uid() or public.current_user_is_admin());
 
 drop policy if exists "laporan_rm_insert_own" on public.laporan_rm;
 create policy "laporan_rm_insert_own"

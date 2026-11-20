@@ -179,11 +179,11 @@ export default function App() {
     if (currentUser) updateAuthSessionUser(currentUser);
   }, [currentUser]);
 
-  const performLogout = () => {
+  const performLogout = async () => {
     if (currentUser) {
-      recordActivity(currentUser, 'Logout', `${currentUser.name} keluar dari aplikasi`);
+      await recordActivity(currentUser, 'Logout', `${currentUser.name} keluar dari aplikasi`);
     }
-    clearAuthSession();
+    await clearAuthSession();
     setShowLogoutConfirmation(false);
     setCurrentUser(null);
     navigate('/login', { replace: true });

@@ -6,7 +6,6 @@ export default function ProfileModal({ user, onClose, onSave }) {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user.name);
   const [jobTitle, setJobTitle] = useState(user.jobTitle || 'Relationship Manager');
-  const [email, setEmail] = useState(user.email);
   const [photo, setPhoto] = useState(user.photo || '');
   const [newPassword, setNewPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -68,7 +67,7 @@ export default function ProfileModal({ user, onClose, onSave }) {
       const updatedUser = await updateUserProfile(user, {
         name,
         jobTitle,
-        email,
+        email: user.email,
         photo,
         newPassword,
       });
@@ -135,7 +134,7 @@ export default function ProfileModal({ user, onClose, onSave }) {
               )}
               <div className="profile-role">
                 <span>Role</span>
-                <strong>{user.role || 'Admin'}</strong>
+                <strong>{user.role || 'Pegawai'}</strong>
               </div>
             </aside>
 
@@ -164,11 +163,12 @@ export default function ProfileModal({ user, onClose, onSave }) {
                 <span>Email</span>
                 <input
                   type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  readOnly={!isEditing}
-                  required
+                  value={user.email}
+                  readOnly
                 />
+                {isEditing && (
+                  <small>Email akun tidak dapat diubah dari halaman profil.</small>
+                )}
               </label>
               <label className="profile-field">
                 <span>Password</span>
@@ -199,7 +199,6 @@ export default function ProfileModal({ user, onClose, onSave }) {
                   onClick={() => {
                     setName(user.name);
                     setJobTitle(user.jobTitle || 'Relationship Manager');
-                    setEmail(user.email);
                     setPhoto(user.photo || '');
                     setNewPassword('');
                     setMessage('');

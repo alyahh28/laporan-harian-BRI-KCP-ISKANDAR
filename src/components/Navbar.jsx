@@ -4,19 +4,21 @@ import Icon from './Icon.jsx';
 import { countActiveTasks } from '../services/tindakLanjut.js';
 
 export default function Navbar({ user, onLogout, onOpenProfile }) {
+  const userId = user?.id;
+  const userRole = user?.role;
   const [profileOpen, setProfileOpen] = useState(false);
   const [activeTaskCount, setActiveTaskCount] = useState(0);
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!userId) return;
     let isMounted = true;
-    countActiveTasks(user).then((count) => {
+    countActiveTasks({ id: userId, role: userRole }).then((count) => {
       if (isMounted) setActiveTaskCount(count);
     });
     return () => {
       isMounted = false;
     };
-  }, [user]);
+  }, [userId, userRole]);
 
   return (
     <header className="sticky top-0 z-30 w-full transition-all duration-300">

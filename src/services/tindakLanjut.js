@@ -63,21 +63,6 @@ const HISTORY_COLUMNS = [
   'created_at',
 ].join(', ');
 
-function errorText(error) {
-  return `${error?.message || ''} ${error?.details || ''} ${error?.hint || ''}`.toLowerCase();
-}
-
-/** True jika migration tindak-lanjut.sql belum dijalankan di Supabase. */
-export function isMissingFollowUpSchema(error) {
-  const text = errorText(error);
-  return (
-    text.includes('tindak_lanjut')
-    || text.includes('activity_result')
-    || text.includes('follow_up_status')
-    || text.includes('does not exist')
-  );
-}
-
 export function formatJakartaDate(value) {
   if (!value) return '-';
   const date = new Date(value);
@@ -106,13 +91,6 @@ export function maskIdentity(value) {
   if (text.length <= 4) return '••••';
   if (text.length <= 8) return `${text.slice(0, 2)}${'•'.repeat(text.length - 4)}${text.slice(-2)}`;
   return `${text.slice(0, 4)}${'•'.repeat(Math.max(4, text.length - 8))}${text.slice(-4)}`;
-}
-
-export function maskPhone(value) {
-  const text = String(value || '').trim();
-  if (!text) return '-';
-  if (text.length <= 4) return '••••';
-  return `${text.slice(0, 4)}${'•'.repeat(Math.max(3, text.length - 7))}${text.slice(-3)}`;
 }
 
 export function normalizeTask(row) {
@@ -206,64 +184,6 @@ export async function fetchTaskHistory(taskId) {
 
   if (error) return { data: [], error };
   return { data: (data || []).map(normalizeHistory), error: null };
-}
-
-/**
- * Kandidat tugas aktif untuk nasabah yang sedang diinput.
- * Pencocokan memeriksa nomor rekening / identitas DAN nama nasabah (tidak case-sensitive).
- * Mengembalikan kandidat tugas yang belum selesai untuk dipilih RM secara eksplisit.
- * Tidak pernah menutup tugas secara otomatis.
- */
-export async function fetchTaskCandidates({ user, customerIdentity, customerName }) {
-  if (!user?.id) return [];
-
-  const identity = String(customerIdentity || '').trim();
-  const name = String(customerName || '').trim();
-  if (!identity && name.length < 3) return [];
-
-  const candidateMap = new Map();
-
-  // 1. Pencocokan nomor rekening / identitas jika diinput minimal 4 digit
-  if (identity && identity.length >= 4) {
-    let idQuery = scopeToUser(
-      supabase
-        .from('tindak_lanjut')
-        .select(TASK_COLUMNS)
-        .eq('status', TASK_STATUS.PENDING)
-        .eq('customer_identity', identity),
-      user,
-    );
-    const { data: idRows } = await idQuery
-      .order('last_report_at', { ascending: false })
-      .limit(20);
-
-    (idRows || []).forEach((row) => {
-      const item = normalizeTask(row);
-      if (item) candidateMap.set(item.id, item);
-    });
-  }
-
-  // 2. Pencocokan nama nasabah jika diinput minimal 3 huruf
-  if (name && name.length >= 3) {
-    let nameQuery = scopeToUser(
-      supabase
-        .from('tindak_lanjut')
-        .select(TASK_COLUMNS)
-        .eq('status', TASK_STATUS.PENDING)
-        .ilike('customer_name', `%${name}%`),
-      user,
-    );
-    const { data: nameRows } = await nameQuery
-      .order('last_report_at', { ascending: false })
-      .limit(20);
-
-    (nameRows || []).forEach((row) => {
-      const item = normalizeTask(row);
-      if (item && !candidateMap.has(item.id)) candidateMap.set(item.id, item);
-    });
-  }
-
-  return Array.from(candidateMap.values());
 }
 
 async function insertHistory(entry) {
@@ -432,41 +352,6 @@ export async function syncTaskFromEditedReport({ user, taskId, form, formType, r
   });
 
   return { taskId, error: applyError };
-}
-
-/** Tutup tugas langsung dari menu Tindak Lanjut. */
-export async function closeTask({ user, task, note }) {
-  if (!task?.id) return { data: null, error: new Error('Tugas tidak ditemukan.') };
-
-  const now = new Date().toISOString();
-  const payload = {
-    status: TASK_STATUS.DONE,
-    closed_at: now,
-    closed_by: user?.id || null,
-    note: String(note || '').trim() || task.note || '',
-  };
-
-  const { data, error } = await supabase
-    .from('tindak_lanjut')
-    .update(payload)
-    .eq('id', task.id)
-    .select(TASK_COLUMNS)
-    .single();
-
-  if (error) return { data: null, error };
-
-  await insertHistory({
-    tindak_lanjut_id: task.id,
-    report_id: null,
-    user_id: user?.id || null,
-    user_name: user?.name || 'Pegawai',
-    action: 'closed',
-    status_before: task.status,
-    status_after: TASK_STATUS.DONE,
-    note: payload.note || 'Tugas ditandai selesai dari menu Tindak Lanjut.',
-  });
-
-  return { data: normalizeTask(data), error: null };
 }
 
 /** Hapus tugas beserta laporan dan riwayat terkait dalam satu transaksi database. */

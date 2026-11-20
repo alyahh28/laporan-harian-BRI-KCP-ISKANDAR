@@ -2,14 +2,17 @@
 
 ## Struktur aplikasi
 
-- `src/App.jsx` mengatur autentikasi, sesi, dan rute.
+- `src/App.jsx` mengatur autentikasi, sesi, sinkronisasi profil, dan rute.
+- `src/config/supabaseClient.js` menginisialisasi Supabase dari environment variable (`VITE_SUPABASE_URL` & `VITE_SUPABASE_ANON_KEY`, lihat `.env.example`).
+- `src/config/transactionOptions.js` menyimpan daftar jenis transaksi terstruktur untuk RMFT dan RM SME.
 - `src/pages/home.jsx` memilih dashboard berdasarkan role.
 - `src/pages/dashboard/EmployeeDashboard.jsx` berisi beranda pegawai.
 - `src/pages/admin/AdminLayout.jsx` menyediakan sidebar Admin tetap pada seluruh halaman Admin dan konfirmasi logout.
-- `src/pages/dashboard/AdminDashboard.jsx` berisi kartu informasi dan grafik laporan.
+- `src/pages/dashboard/AdminDashboard.jsx` berisi kartu informasi, tugas aktif, dan grafik laporan.
 - `src/pages/admin/EmployeeManagementPage.jsx` berisi halaman khusus pengelolaan akun dan role pegawai.
+- `src/pages/tindaklanjut/TindakLanjutPage.jsx` dan `src/services/tindakLanjut.js` mengelola daftar tugas tindak lanjut beserta riwayat auditnya.
 - `src/pages/activity/ActivityHistoryPage.jsx` berisi halaman riwayat aktivitas Admin/Pegawai.
-- `src/components/TransactionForm.jsx` dipakai bersama oleh RMFT dan RM SME.
+- `src/components/TransactionForm.jsx` bersama sub-komponen di `src/components/reports/` dipakai oleh RMFT dan RM SME.
 - `src/pages/auth/` berisi login, registrasi, dan pengelolaan sesi.
 
 Registrasi baru memberikan role `Pegawai`. Admin dapat mengubah role dari dashboard Admin.
@@ -17,12 +20,9 @@ Sesi berakhir setelah empat hari tanpa aktivitas.
 
 ### Kebijakan akses Supabase
 
-Jalankan `supabase/role-access.sql` melalui SQL Editor Supabase untuk menerapkan
-Row Level Security pada tabel `profiles`, `laporan_rm`, dan `aktivitas_log`.
-Pegawai dapat membaca semua laporan sesuai kebutuhan, tetapi hanya dapat mengubah
-atau menghapus laporan miliknya. Role hanya dapat diubah oleh admin. Script ini
-mengasumsikan tabel dan kolom yang sudah digunakan aplikasi telah dibuat, dan
-mengganti seluruh policy RLS yang sudah ada pada ketiga tabel tersebut.
+1. Salin `.env.example` menjadi `.env` lalu isi `VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY`.
+2. Jalankan `supabase/role-access.sql` dan `supabase/tindak-lanjut.sql` melalui SQL Editor Supabase untuk menerapkan Row Level Security pada tabel `profiles`, `laporan_rm`, `aktivitas_log`, `tindak_lanjut`, dan `tindak_lanjut_riwayat`.
+Pegawai hanya dapat membaca, mengubah, atau menghapus laporan miliknya sendiri, sedangkan Admin dapat mengakses seluruh laporan. Role hanya dapat diubah oleh Admin.
 
 Untuk instalasi pertama, daftarkan akun admin lalu ubah rolenya sekali melalui
 SQL Editor Supabase (ganti alamat email berikut dengan email akun admin):
@@ -50,4 +50,4 @@ The React Compiler is not enabled on this template because of its impact on dev 
 
 ## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite-plugin-react/blob/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.

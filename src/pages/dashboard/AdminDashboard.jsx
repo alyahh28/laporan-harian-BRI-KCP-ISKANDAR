@@ -8,6 +8,8 @@ import { supabase } from '../../config/supabaseClient.js';
 import { countActiveTasks } from '../../services/tindakLanjut.js';
 
 export default function AdminDashboard({ user, onLogout, onUpdateUser }) {
+  const userId = user?.id;
+  const userRole = user?.role;
   const [showProfile, setShowProfile] = useState(false);
   const [notice, setNotice] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -17,7 +19,7 @@ export default function AdminDashboard({ user, onLogout, onUpdateUser }) {
   const [yearlyChartData, setYearlyChartData] = useState({});
 
   useEffect(() => {
-    if (!isAdminRole(user?.role)) return undefined;
+    if (!isAdminRole(userRole)) return undefined;
 
     let isMounted = true;
     async function loadAdminData() {
@@ -63,21 +65,21 @@ export default function AdminDashboard({ user, onLogout, onUpdateUser }) {
     return () => {
       isMounted = false;
     };
-  }, [user]);
+  }, [userId, userRole]);
 
   // Jumlah tugas tindak lanjut yang masih aktif (seluruh RM untuk admin).
   useEffect(() => {
-    if (!isAdminRole(user?.role)) return undefined;
+    if (!isAdminRole(userRole)) return undefined;
     let isMounted = true;
 
-    countActiveTasks(user).then((count) => {
+    countActiveTasks({ id: userId, role: userRole }).then((count) => {
       if (isMounted) setActiveTaskCount(count);
     });
 
     return () => {
       isMounted = false;
     };
-  }, [user]);
+  }, [userId, userRole]);
 
   useEffect(() => {
     if (notice) {

@@ -1,4 +1,5 @@
 import TransactionForm from '../../components/TransactionForm.jsx';
+import { TRANSACTION_FORM_CONFIG } from '../../config/transactionOptions.js';
 
 export default function RMKREDIT({ user, onBack }) {
   return (
@@ -7,15 +8,7 @@ export default function RMKREDIT({ user, onBack }) {
       onBack={onBack}
       formType="rmkredit"
       title="Relationship Manager SME"
-      transactionLabel="Jenis Layanan Kredit"
-      transactionOptions={[
-        'Konsultasi kredit',
-        'Pengajuan kredit',
-        'Follow up pengajuan',
-        'Pembayaran angsuran',
-        'Restrukturisasi kredit',
-        'Lainnya',
-      ]}
+      transactionLabel={TRANSACTION_FORM_CONFIG.rmkredit.label}
     />
   );
 }

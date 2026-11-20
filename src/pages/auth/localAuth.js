@@ -227,9 +227,17 @@ export async function authenticateUser({ email, password }) {
   return null;
 }
 
-export async function updateUserProfile(currentUser, changes) {
-  const normalizedEmail = changes.email.trim().toLowerCase();
+function isNetworkError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  return (
+    message.includes('failed to fetch') ||
+    message.includes('fetch failed') ||
+    message.includes('networkerror') ||
+    message.includes('network request failed')
+  );
+}
 
+export async function updateUserProfile(currentUser, changes) {
   try {
     // 1. Update ke tabel public.profiles di Supabase
     const { error: profileError } = await supabase
@@ -243,6 +251,9 @@ export async function updateUserProfile(currentUser, changes) {
       .eq('id', currentUser.id);
 
     if (profileError) {
+      if (!isNetworkError(profileError)) {
+        throw new Error(profileError.message || 'Gagal memperbarui profil di server.');
+      }
       console.warn('Supabase update profile notice:', profileError.message);
     }
 
@@ -252,18 +263,24 @@ export async function updateUserProfile(currentUser, changes) {
         password: changes.newPassword,
       });
       if (authError) {
+        if (!isNetworkError(authError)) {
+          throw new Error(authError.message || 'Gagal memperbarui kata sandi.');
+        }
         console.warn('Supabase update password notice:', authError.message);
       }
     }
   } catch (err) {
-    console.warn('Gagal sinkronisasi profil ke Supabase:', err);
+    if (!isNetworkError(err)) {
+      throw new Error(err?.message || 'Gagal menyimpan pembaruan profil.', { cause: err });
+    }
+    console.warn('Gagal sinkronisasi profil ke Supabase (mode offline):', err);
   }
 
-  // Simpan pembaruan lokal & session
+  // Simpan pembaruan lokal & session (email akun tetap mengikuti Supabase Auth)
   const updatedUser = {
     ...currentUser,
     name: changes.name.trim(),
-    email: normalizedEmail,
+    email: currentUser.email,
     jobTitle: changes.jobTitle.trim(),
     photo: changes.photo,
   };

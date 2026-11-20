@@ -24,40 +24,6 @@ export function getUserActivities(user) {
     .sort((first, second) => new Date(second.timestamp) - new Date(first.timestamp));
 }
 
-export async function fetchAllActivitiesFromSupabase() {
-  try {
-    const { data, error } = await supabase
-      .from('aktivitas_log')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(100);
-
-    if (error) {
-      console.warn('Gagal memuat seluruh aktivitas dari Supabase:', error.message);
-      return readAllActivities()
-        .sort((first, second) => new Date(second.timestamp) - new Date(first.timestamp))
-        .slice(0, 100);
-    }
-
-    if (Array.isArray(data) && data.length > 0) {
-      return data.map((item) => ({
-        id: item.id,
-        userKey: item.user_id,
-        userName: item.user_name || 'Pegawai',
-        action: item.action,
-        detail: item.detail,
-        timestamp: item.created_at,
-      }));
-    }
-  } catch (err) {
-    console.warn('Gagal memuat seluruh aktivitas dari Supabase:', err);
-  }
-
-  return readAllActivities()
-    .sort((first, second) => new Date(second.timestamp) - new Date(first.timestamp))
-    .slice(0, 100);
-}
-
 export async function fetchActivitiesFromSupabase(user) {
   if (!user?.id) return getUserActivities(user);
 
@@ -113,21 +79,24 @@ export function recordActivity(user, action, detail) {
   window.dispatchEvent(new Event(ACTIVITY_EVENT_NAME));
 
   // Asinkron simpan ke tabel public.aktivitas_log di Supabase
-  if (user?.id) {
-    supabase
-      .from('aktivitas_log')
-      .insert({
-        user_id: user.id,
-        user_name: user.name || 'RM',
-        action,
-        detail,
-        created_at: timestamp,
-      })
-      .then(({ error }) => {
-        if (error) console.warn('Supabase log notice:', error.message);
-      })
-      .catch((err) => console.warn('Supabase log error:', err));
-  }
+  if (!user?.id) return Promise.resolve();
+
+  return (async () => {
+    try {
+      const { error } = await supabase
+        .from('aktivitas_log')
+        .insert({
+          user_id: user.id,
+          user_name: user.name || 'RM',
+          action,
+          detail,
+          created_at: timestamp,
+        });
+      if (error) console.warn('Supabase log notice:', error.message);
+    } catch (err) {
+      console.warn('Supabase log error:', err);
+    }
+  })();
 }
 
 export function subscribeToActivities(userOrCb, maybeCb) {

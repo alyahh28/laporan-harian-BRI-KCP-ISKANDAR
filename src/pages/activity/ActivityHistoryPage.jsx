@@ -16,7 +16,9 @@ function getActivityCategory(activity) {
 const ITEMS_PER_PAGE = 10;
 
 export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUser }) {
-  const isAdmin = isAdminRole(user?.role);
+  const userId = user?.id;
+  const userRole = user?.role;
+  const isAdmin = isAdminRole(userRole);
   const [showProfile, setShowProfile] = useState(false);
   const [activities, setActivities] = useState([]);
   const [roleFilter, setRoleFilter] = useState('all');
@@ -27,6 +29,7 @@ export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUs
   const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
+    if (!userId) return undefined;
     let isMounted = true;
 
     async function loadHistory() {
@@ -43,7 +46,7 @@ export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUs
             .order('created_at', { ascending: false })
             .order('id', { ascending: true })
             .range(offset, offset + pageSize - 1);
-          if (!isAdmin) query = query.eq('user_id', user.id);
+          if (!isAdmin) query = query.eq('user_id', userId);
 
           const { data, error } = await query;
           if (error) throw error;
@@ -60,7 +63,7 @@ export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUs
           if (error) throw error;
           roles = Object.fromEntries((data || []).map((profile) => [profile.id, profile.role]));
         } else {
-          roles[user.id] = user.role;
+          roles[userId] = userRole;
         }
 
         if (isMounted) {
@@ -87,7 +90,7 @@ export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUs
     return () => {
       isMounted = false;
     };
-  }, [isAdmin, user]);
+  }, [isAdmin, userId, userRole]);
 
   const filteredActivities = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -109,17 +112,6 @@ export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUs
     (safeCurrentPage - 1) * ITEMS_PER_PAGE,
     safeCurrentPage * ITEMS_PER_PAGE,
   );
-
-  useEffect(() => {
-    setCurrentPage((page) => {
-      if (page <= totalPages) return page;
-      return totalPages;
-    });
-  }, [totalPages]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [roleFilter, categoryFilter, search]);
 
   const startIndex = filteredActivities.length
     ? (safeCurrentPage - 1) * ITEMS_PER_PAGE + 1
@@ -171,7 +163,10 @@ export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUs
                   Peran pengguna
                   <select
                     value={roleFilter}
-                    onChange={(event) => setRoleFilter(event.target.value)}
+                    onChange={(event) => {
+                      setRoleFilter(event.target.value);
+                      setCurrentPage(1);
+                    }}
                     className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-semibold text-[#014181]"
                   >
                     <option value="all">Semua peran</option>
@@ -184,7 +179,10 @@ export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUs
                 Jenis aktivitas
                 <select
                   value={categoryFilter}
-                  onChange={(event) => setCategoryFilter(event.target.value)}
+                  onChange={(event) => {
+                    setCategoryFilter(event.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-semibold text-[#014181]"
                 >
                   <option value="all">Semua aktivitas</option>
@@ -198,7 +196,10 @@ export default function ActivityHistoryPage({ user, onBack, onLogout, onUpdateUs
               Pencarian
               <input
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setCurrentPage(1);
+                }}
                 placeholder="Cari nama pengguna, aktivitas, atau keterangan..."
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-medium text-slate-700 placeholder:text-slate-400"
               />

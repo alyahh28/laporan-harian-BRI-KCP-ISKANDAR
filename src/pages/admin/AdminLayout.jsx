@@ -23,21 +23,23 @@ function isNavigationItemActive(item, pathname, search) {
 
 export default function AdminLayout({ user, onRequestLogout, children }) {
   const location = useLocation();
+  const userId = user?.id;
+  const userRole = user?.role;
   const [activeTaskCount, setActiveTaskCount] = useState(0);
 
   // Badge jumlah tugas tindak lanjut yang masih aktif.
   useEffect(() => {
-    if (!user?.id) return undefined;
+    if (!userId) return undefined;
     let isMounted = true;
 
-    countActiveTasks(user).then((count) => {
+    countActiveTasks({ id: userId, role: userRole }).then((count) => {
       if (isMounted) setActiveTaskCount(count);
     });
 
     return () => {
       isMounted = false;
     };
-  }, [user, location.pathname]);
+  }, [userId, userRole, location.pathname]);
 
   const navigateTo = (item) => {
     recordActivity(user, 'Membuka menu', `Membuka menu ${item.label}`);
